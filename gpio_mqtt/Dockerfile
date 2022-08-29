@@ -1,69 +1,35 @@
-ARG BUILD_FROM=alpine
-FROM golang:1.15.2-alpine AS builder
+ARG BUILD_FROM
 
-# Local build:
-# docker build -t ruuvitag-mqtt . && docker run --rm -v $PWD/data/options.example.json:/data/options.json ruuvitag-mqtt
+FROM golang:1.19-alpine3.16 AS builder
 
+WORKDIR /workspace/gpio-mqtt-plugin
 ARG BUILD_ARCH
-ARG CLI_VERSION
 
-# Set necessary environment variables needed for our image
-ENV GO111MODULE=on \
-    CGO_ENABLED=0
+COPY . .
 
-# Move to working directory /build
-WORKDIR /build
+# Build
+RUN \
+        if [ "${BUILD_ARCH}" = "armhf" ]; then \
+            CGO_ENABLED=0 GOARM=6 GOARCH=arm go build -ldflags="-s -w"; \
+        elif [ "${BUILD_ARCH}" = "armv7" ]; then \
+            CGO_ENABLED=0 GOARM=7 GOARCH=arm go build -ldflags="-s -w"; \
+        elif [ "${BUILD_ARCH}" = "aarch64" ]; then \
+            CGO_ENABLED=0 GOARCH=arm64 go build -ldflags="-s -w"; \
+        elif [ "${BUILD_ARCH}" = "i386" ]; then \
+            CGO_ENABLED=0 GOARCH=386 go build -ldflags="-s -w"; \
+        elif [ "${BUILD_ARCH}" = "amd64" ]; then \
+            CGO_ENABLED=0 GOARCH=amd64 go build -ldflags="-s -w"; \
+        else \
+            exit 1; \
+        fi \
+    && cp -f plugin-gpio-mqtt /workspace/gpio-mqtt \
+    && rm -rf /workspace/gpio-mqtt-plugin
 
-# Copy static assets into the container
-COPY go.mod go.sum ./
 
-# Download dependencies using go mod
-RUN go mod download
+FROM ${BUILD_FROM}
 
-# Copy the code into the container
-#COPY cmd ./cmd
-#COPY internal ./internal
-COPY entrypoint.sh ./
+WORKDIR /
+COPY --from=builder /workspace/gpio-mqtt /usr/bin/gpio-mqtt
+COPY rootfs /
 
-# Build the application
-RUN go build -o main main.go
-
-# Reduce end image size by dropping build phases out
-# hadolint ignore=DL3006
-# FROM alpine
-FROM $BUILD_FROM
-
-ARG BUILD_DATE
-ARG BUILD_REF
-ARG BUILD_VERSION=0.0.1
-
-RUN apk add --no-cache libusb-dev bluez-dev linux-headers eudev-dev
-
-# Move to /ruuvitag directory as the place for resulting binary folder
-WORKDIR /gpio_mqtt
-
-# Copy binary from build to main folder
-# COPY --from=builder /build/entrypoint.sh ./
-COPY --from=builder /build/main ./
-
-# Command to run when starting the container
-# CMD ["/ruuvitag/entrypoint.sh"]
-CMD ["/gpio_mqtt/main"]
-
-# Labels
-LABEL \
-    io.hass.name="GPIO / MQTT" \
-    io.hass.description="Gate to GPIO module with MQTT" \
-    io.hass.arch="${BUILD_ARCH}" \
-    io.hass.type="addon" \
-    io.hass.version=${BUILD_VERSION} \
-    maintainer="Alexander Titov <a.tit.off@gmail.com>" \
-    org.label-schema.description="Broadcast RuuviTag sensors into MQTT" \
-    org.label-schema.build-date=${BUILD_DATE} \
-    org.label-schema.name="RuuviTag into MQTT" \
-    org.label-schema.schema-version="1.0" \
-    org.label-schema.usage="https://github.com/atitoff/ha_addons/blob/main/gpio_mqtt/readme.md" \
-    org.label-schema.vcs-ref=${BUILD_REF} \
-    org.label-schema.vcs-url="https://github.com/atitoff/ha_addons/tree/main/gpio_mqtt" \
-    org.label-schema.vendor="HomeAssistant add-ons by Alexander Titov"
-
+ENTRYPOINT ["/usr/bin/gpio-mqtt"]

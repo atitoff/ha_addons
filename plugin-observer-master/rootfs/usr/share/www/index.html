@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Assistant observer</title>
+    <link rel="stylesheet" href="/observer.css">
+  </head>
+  <body>
+      <div class="container">
+        <h1>Home Assistant observer</h1>
+        <table>
+          <tr>
+            <td>
+              Supervisor:
+            </td>
+            <td class="{{if .SupervisorConnected}}connected{{else}}disconnected{{end}}">
+              {{if .SupervisorConnected}}Connected{{else}}Disconnected{{end}}
+            </td>
+          </tr>
+          {{if .SupervisorConnected}}
+          <tr>
+            <td>
+              Supported:
+            </td>
+            <td class="{{if .Supported}}connected{{else if .SupervisorResponse}}disconnected{{end}}">
+              {{if .Supported}}Supported{{else if not .SupervisorResponse}}Processing...{{else}}Unsupported{{end}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Healthy:
+            </td>
+            <td class="{{if .Healthy}}connected{{else if .SupervisorResponse}}disconnected{{end}}">
+              {{if .Healthy}}Healthy{{else if not .SupervisorResponse}}Processing...{{else}}Unhealthy{{end}}
+            </td>
+          </tr>
+          {{end}}
+        </table>
+        {{ if not .SupervisorConnected }}
+          <pre class="log">{{.Logs}}</pre>
+        {{ end }}
+      </div>
+  </body>
+</html>

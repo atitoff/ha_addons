@@ -1,35 +1,8 @@
 ARG BUILD_FROM
+FROM $BUILD_FROM
 
-FROM golang:1.19-alpine3.16 AS builder
+# Copy data for add-on
+COPY gpio_mqtt /
+RUN chmod a+x /gpio_mqtt
 
-WORKDIR /workspace/gpio-mqtt-plugin
-ARG BUILD_ARCH
-
-COPY . .
-
-# Build
-RUN \
-        if [ "${BUILD_ARCH}" = "armhf" ]; then \
-            CGO_ENABLED=0 GOARM=6 GOARCH=arm go build -ldflags="-s -w"; \
-        elif [ "${BUILD_ARCH}" = "armv7" ]; then \
-            CGO_ENABLED=0 GOARM=7 GOARCH=arm go build -ldflags="-s -w"; \
-        elif [ "${BUILD_ARCH}" = "aarch64" ]; then \
-            CGO_ENABLED=0 GOARCH=arm64 go build -ldflags="-s -w"; \
-        elif [ "${BUILD_ARCH}" = "i386" ]; then \
-            CGO_ENABLED=0 GOARCH=386 go build -ldflags="-s -w"; \
-        elif [ "${BUILD_ARCH}" = "amd64" ]; then \
-            CGO_ENABLED=0 GOARCH=amd64 go build -ldflags="-s -w"; \
-        else \
-            exit 1; \
-        fi \
-    && cp -f plugin-gpio-mqtt /workspace/gpio-mqtt \
-    && rm -rf /workspace/gpio-mqtt-plugin
-
-
-FROM ${BUILD_FROM}
-
-WORKDIR /
-COPY --from=builder /workspace/gpio-mqtt /usr/bin/gpio-mqtt
-COPY rootfs /
-
-ENTRYPOINT ["/usr/bin/gpio-mqtt"]
+CMD [ "/gpio_mqtt" ]

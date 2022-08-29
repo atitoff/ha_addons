@@ -20,7 +20,7 @@ type data struct {
 func loadSettings() {
 	t := data{}
 	// read settings
-	settFile, err := os.ReadFile("config.yaml")
+	settFile, err := os.ReadFile("/data/config.yaml")
 	check(err)
 	err = yaml.Unmarshal(settFile, &t)
 	check(err)

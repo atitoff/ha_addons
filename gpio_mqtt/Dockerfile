@@ -3,6 +3,9 @@ FROM $BUILD_FROM
 
 # Copy data for add-on
 COPY gpio_mqtt /
-RUN chmod a+x /gpio_mqtt
+COPY run.sh /
 
-CMD [ "/gpio_mqtt" ]
+RUN chmod a+x /gpio_mqtt
+RUN chmod a+x /run.sh
+
+ENTRYPOINT ["/run.sh"]

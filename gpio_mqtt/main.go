@@ -2,21 +2,34 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
-func main() {
-	fmt.Println("MqttPort:", os.Getenv("MqttPort"))
-	fmt.Println(len(os.Args), os.Args)
+type Config struct {
+	MqttPort int
+	MqttHost string
+}
 
-	content, err := ioutil.ReadFile("/data/options.json")
-	if err != nil {
-		log.Fatal(err)
+var config Config
+
+func check(e error) {
+	if e != nil {
+		panic(e)
 	}
-	fmt.Println(string(content))
+}
+
+func loadConfig() {
+	var err error
+	config.MqttPort, err = strconv.Atoi(os.Getenv("MqttPort"))
+	config.MqttHost = os.Getenv("MqttPort")
+	check(err)
+}
+
+func main() {
+
+	fmt.Println(config)
 
 	for {
 		time.Sleep(10 * time.Second)

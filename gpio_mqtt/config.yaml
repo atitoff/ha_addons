@@ -11,14 +11,14 @@ arch:
   - i386
 options:
   MqttPort: 1884
-#  MqttHost: "localhost"
+  MqttHost: "localhost"
 #  MqttClientId: "gpio_mqtt"
 #  MqttUsername: ""
 #  MqttPassword: ""
 #  LogLevel: "warning"
 schema:
   MqttPort: "int"
-#  MqttHost: "str"
+  MqttHost: "str"
 #  MqttClientId: "str"
 #  MqttUsername: "str"
 #  MqttPassword: "password"

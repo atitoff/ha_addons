@@ -1,0 +1,9 @@
+name": "GPIO / MQTT"
+version: "0.0.1"
+slug": "gpio-mqtt",
+description: "Gate to GPIO module with MQTT"
+url: "https://github.com/atitoff/ha_addons/tree/main/gpio_mqtt"
+startup: application
+boot: auto
+arch:
+  - amd64

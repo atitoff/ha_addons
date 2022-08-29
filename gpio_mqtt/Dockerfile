@@ -26,7 +26,7 @@ COPY internal ./internal
 COPY entrypoint.sh ./
 
 # Build the application
-RUN go build -o main cmd/main.go
+RUN go build -o main main.go
 
 # Reduce end image size by dropping build phases out
 # hadolint ignore=DL3006

@@ -1,6 +1,7 @@
-name: "GPIO / MQTT"
+name: "GPIO_MQTT"
 description: "Gate to GPIO module with MQTT"
 version: "1.0.1"
+slug: "gpio_mqtt"
 init: false
 arch:
   - aarch64
@@ -8,3 +9,4 @@ arch:
   - armhf
   - armv7
   - i386
+

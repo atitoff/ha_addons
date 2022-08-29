@@ -1,6 +1,6 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.2"
+version: "1.0.3"
 slug: "gpio_mqtt"
 init: false
 arch:
@@ -12,6 +12,14 @@ arch:
 options:
   mqtt_port: 1884
   mqtt_host: "localhost"
+  mqtt_user:
+    "clientId": "gpio_mqtt",
+    "username": "",
+    "password": ""
 schema:
   mqtt_host: "str"
   mqtt_port: "int"
+  mqtt_user:
+    "clientId": "str",
+    "username": "str",
+    "password": "password"

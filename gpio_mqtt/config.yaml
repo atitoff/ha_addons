@@ -1,6 +1,6 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.4"
+version: "1.0.5"
 slug: "gpio_mqtt"
 init: false
 arch:
@@ -24,4 +24,5 @@ schema:
     "clientId": "str"
     "username": "str"
     "password": "password"
-  log_level: "list(trace|debug|info|notice|warning|error|fatal|panic)?",
+  log_level: "list(trace|debug|info|notice|warning|error|fatal|panic)?"
+

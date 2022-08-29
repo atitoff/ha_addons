@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println("FOO:", os.Getenv("MQTT_PORT"))
+	fmt.Println("MqttPort:", os.Getenv("MqttPort"))
 	fmt.Println(len(os.Args), os.Args)
 	for {
 		time.Sleep(10 * time.Second)

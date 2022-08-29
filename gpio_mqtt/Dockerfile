@@ -21,8 +21,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the code into the container
-COPY cmd ./cmd
-COPY internal ./internal
+#COPY cmd ./cmd
+#COPY internal ./internal
 COPY entrypoint.sh ./
 
 # Build the application

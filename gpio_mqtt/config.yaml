@@ -13,16 +13,10 @@ services:
   - "mqtt:need"
 options:
   MqttPort: 1883
-#  MqttHost: "localhost"
   MqttClientId: "gpio_mqtt"
-#  MqttUsername: ""
-#  MqttPassword: ""
   LogLevel: "warning"
 schema:
   MqttPort: "int"
-#  MqttHost: "str"
-   MqttClientId: "str"
-#  MqttUsername: "str"
-#  MqttPassword: "password"
+  MqttClientId: "str"
   LogLevel: "list(trace|debug|info|notice|warning|error|fatal|panic)?"
 

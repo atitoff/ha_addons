@@ -1,6 +1,6 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.18"
+version: "1.0.19"
 slug: "gpio_mqtt"
 init: false
 arch:
@@ -13,16 +13,16 @@ services:
   - "mqtt:need"
 options:
   MqttPort: 1883
-  MqttHost: "localhost"
-  MqttClientId: "gpio_mqtt"
-  MqttUsername: ""
-  MqttPassword: ""
+#  MqttHost: "localhost"
+#  MqttClientId: "gpio_mqtt"
+#  MqttUsername: ""
+#  MqttPassword: ""
   LogLevel: "warning"
 schema:
   MqttPort: "int"
-  MqttHost: "str"
-  MqttClientId: "str"
-  MqttUsername: "str"
-  MqttPassword: "password"
+#  MqttHost: "str"
+#  MqttClientId: "str"
+#  MqttUsername: "str"
+#  MqttPassword: "password"
   LogLevel: "list(trace|debug|info|notice|warning|error|fatal|panic)?"
 

@@ -19,6 +19,18 @@ func check(e error) {
 }
 
 func loadConfig() {
+	if len(os.Args) <= 3 {
+		config.MqttPort = 1883
+		config.MqttHost = "192.168.1.117"
+		config.MqttClientId = "mqtt_gpio"
+		config.MqttUsername = "mqtt"
+		config.MqttPassword = "mqtt"
+		config.LogLevel = "warning"
+	} else {
+		config.MqttHost = os.Args[1]
+
+	}
+
 	var err error
 	config.MqttPort, err = strconv.Atoi(os.Getenv("MqttPort"))
 	if err != nil {

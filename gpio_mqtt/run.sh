@@ -15,7 +15,8 @@ if [[ -r "$CONFIG_PATH" ]]
 then
   MqttPort="$(jq --raw-output '.MqttPort // empty' $CONFIG_PATH)"
   MqttClientId="$(jq --raw-output '.MqttClientId // empty' $CONFIG_PATH)"
+  LogLevel="$(jq --raw-output '.LogLevel // empty' $CONFIG_PATH)"
 fi
 
 
-exec /gpio_mqtt --mqtthost=$MQTT_HOST --MqttClientId=$MqttClientId --mqttuser=$MQTT_USER --mqttpass=$MQTT_PASSWORD --MqttPort=$MqttPort
+exec /gpio_mqtt --mqtthost=$MQTT_HOST --MqttClientId=$MqttClientId --mqttuser=$MQTT_USER --mqttpass=$MQTT_PASSWORD --MqttPort=$MqttPort  --LogLevel=$LogLevel

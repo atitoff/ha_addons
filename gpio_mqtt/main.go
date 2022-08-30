@@ -51,6 +51,8 @@ func loadConfig() {
 }
 
 func main() {
+	argsWithProg := os.Args
+	fmt.Println(argsWithProg)
 
 	loadConfig()
 	go gpio_handler.Run(config)

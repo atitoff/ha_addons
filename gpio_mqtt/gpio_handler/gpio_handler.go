@@ -61,7 +61,7 @@ func Run(settings Config) {
 	}
 }
 
-func errorToMqtt(err string) {
+func ErrorToMqtt(err string) {
 	sendQueue <- PublishTopic{"log/error", err}
 }
 
@@ -76,16 +76,16 @@ func daliSet(topic string, splitTopic []string) {
 	if splitTopic[3] == "set" {
 		addr, err := strconv.Atoi(splitTopic[4])
 		if err != nil {
-			errorToMqtt(errStr)
+			ErrorToMqtt(errStr)
 			return
 		}
 		value, err := strconv.Atoi(splitTopic[5])
 		if err != nil {
-			errorToMqtt(errStr)
+			ErrorToMqtt(errStr)
 			return
 		}
 		if (addr > 63 || addr < 0) || (value > 255 || value < 0) {
-			errorToMqtt(errStr)
+			ErrorToMqtt(errStr)
 			return
 		}
 		sendQueue <- PublishTopic{
@@ -94,16 +94,16 @@ func daliSet(topic string, splitTopic []string) {
 	} else if splitTopic[3] == "set_grp" {
 		addr, err := strconv.Atoi(splitTopic[4])
 		if err != nil {
-			errorToMqtt(errStr)
+			ErrorToMqtt(errStr)
 			return
 		}
 		value, err := strconv.Atoi(splitTopic[5])
 		if err != nil {
-			errorToMqtt(errStr)
+			ErrorToMqtt(errStr)
 			return
 		}
 		if (addr > 15 || addr < 0) || (value > 255 || value < 0) {
-			errorToMqtt(errStr)
+			ErrorToMqtt(errStr)
 			return
 		}
 		sendQueue <- PublishTopic{

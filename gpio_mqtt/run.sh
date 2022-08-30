@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bashio
 
+# #!/usr/bin/env bash
 CONFIG_PATH=/data/options.json
 
 

@@ -1,6 +1,6 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.15"
+version: "1.0.16"
 slug: "gpio_mqtt"
 init: false
 arch:
@@ -10,7 +10,7 @@ arch:
   - armv7
   - i386
 options:
-  MqttPort: 1884
+  MqttPort: 1883
   MqttHost: "localhost"
   MqttClientId: "gpio_mqtt"
   MqttUsername: ""

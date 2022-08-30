@@ -8,13 +8,14 @@ MQTT_HOST=$(bashio::services mqtt "host")
 MQTT_USER=$(bashio::services mqtt "username")
 MQTT_PASSWORD=$(bashio::services mqtt "password")
 
+
+
+
 if [[ -r "$CONFIG_PATH" ]]
 then
-  MqttPort="$(jq --raw-output '.MqttPort // empty' "$CONFIG_PATH")
-  MqttClientId="$(jq --raw-output '.MqttClientId // empty' "$CONFIG_PATH")
+  MqttPort="$(jq --raw-output '.MqttPort // empty' $CONFIG_PATH)"
+  MqttClientId="$(jq --raw-output '.MqttClientId // empty' $CONFIG_PATH)"
 fi
-
-export MqttPort="${MqttPort:-1883}"
 
 
 exec /gpio_mqtt --mqtthost=$MQTT_HOST --MqttClientId=$MqttClientId --mqttuser=$MQTT_USER --mqttpass=$MQTT_PASSWORD --MqttPort=$MqttPort

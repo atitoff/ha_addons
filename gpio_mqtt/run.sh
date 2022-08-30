@@ -8,7 +8,7 @@ then
   MqttPort="$(jq --raw-output '.MqttHost // empty' "$CONFIG_PATH")"
 fi
 
-export MqttPort="${MqttPort:-1884}"
+export MqttPort="${MqttPort:-1883}"
 export MqttHost="${MqttHost:-localhost}"
 
 exec /gpio_mqtt

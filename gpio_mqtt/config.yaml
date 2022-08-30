@@ -12,15 +12,15 @@ arch:
 options:
   MqttPort: 1884
   MqttHost: "localhost"
-#  MqttClientId: "gpio_mqtt"
-#  MqttUsername: ""
-#  MqttPassword: ""
-#  LogLevel: "warning"
+  MqttClientId: "gpio_mqtt"
+  MqttUsername: ""
+  MqttPassword: ""
+  LogLevel: "warning"
 schema:
   MqttPort: "int"
   MqttHost: "str"
-#  MqttClientId: "str"
-#  MqttUsername: "str"
-#  MqttPassword: "password"
-#  LogLevel: "list(trace|debug|info|notice|warning|error|fatal|panic)?"
+  MqttClientId: "str"
+  MqttUsername: "str"
+  MqttPassword: "password"
+  LogLevel: "list(trace|debug|info|notice|warning|error|fatal|panic)?"
 

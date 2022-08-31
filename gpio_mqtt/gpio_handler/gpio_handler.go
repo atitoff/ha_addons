@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -21,6 +22,15 @@ type PublishTopic struct {
 	Topic   string
 	Payload string
 }
+
+type CompiledRegex struct {
+	daliSet    *regexp.Regexp
+	daliSetGrp *regexp.Regexp
+	daliRaw    *regexp.Regexp
+	gpioSet    *regexp.Regexp
+}
+
+var compiledRegex CompiledRegex
 
 var sendQueue = make(chan PublishTopic, 100)
 
@@ -40,6 +50,7 @@ var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err
 }
 
 func Run(settings Config) {
+	compileRegex()
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", settings.MqttHost, settings.MqttPort))
 	opts.SetClientID(settings.MqttClientId)
@@ -66,85 +77,118 @@ func ErrorToMqtt(err string) {
 }
 
 func daliSet(topic string, splitTopic []string) {
-	var errStr string = fmt.Sprintf("dali mismatch: %s", topic)
-	// gpio/2/dali/set/25/255
+	// var errStr string = fmt.Sprintf("dali mismatch: %s", topic)
+	// GPIO/2/SET/DALI/SET/25/255
 	// 25 адрес устройства (00..63)
 	// 255 устанавливаемое значение (0..255)
-	// gpio/2/dali/set_grp/5/255
-	// 5 группа (0..15)
-
-	if splitTopic[3] == "set" {
-		addr, err := strconv.Atoi(splitTopic[4])
-		if err != nil {
-			ErrorToMqtt(errStr)
-			return
-		}
-		value, err := strconv.Atoi(splitTopic[5])
-		if err != nil {
-			ErrorToMqtt(errStr)
-			return
-		}
-		if (addr > 63 || addr < 0) || (value > 255 || value < 0) {
-			ErrorToMqtt(errStr)
-			return
-		}
-		sendQueue <- PublishTopic{
-			fmt.Sprintf("gpio_%s/dali", splitTopic[1]),
-			string([]byte{uint8(addr << 1), uint8(value)})}
-	} else if splitTopic[3] == "set_grp" {
-		addr, err := strconv.Atoi(splitTopic[4])
-		if err != nil {
-			ErrorToMqtt(errStr)
-			return
-		}
-		value, err := strconv.Atoi(splitTopic[5])
-		if err != nil {
-			ErrorToMqtt(errStr)
-			return
-		}
-		if (addr > 15 || addr < 0) || (value > 255 || value < 0) {
-			ErrorToMqtt(errStr)
-			return
-		}
-		sendQueue <- PublishTopic{
-			fmt.Sprintf("gpio_%s/dali", splitTopic[1]),
-			string([]byte{uint8(0b10000000 | (addr << 1)), uint8(value)})}
+	fmt.Println(topic)
+	addr, err := strconv.Atoi(splitTopic[5])
+	if err != nil {
+		return
 	}
+	value, err := strconv.Atoi(splitTopic[6])
+	if err != nil {
+		return
+	}
+	payload := []byte{uint8(addr << 1), uint8(value)}
+	sendQueue <- PublishTopic{
+		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
+		"0003" + hex.EncodeToString(payload)}
 
 }
 
-func daliRaw(msg mqtt.Message) {
-	// gpio/2/dali/raw
-	// payload 2 byte | 4 byte hex convert to 2 byte
-	if len(msg.Payload()) == 4 {
-		data, err := hex.DecodeString(string(msg.Payload()))
-		if err == nil {
-			fmt.Println(data)
-		}
+func daliSetGrp(topic string, splitTopic []string) {
+	// GPIO/2/SET/DALI/SET_GRP/12/255
+	fmt.Println(topic)
+	addr, err := strconv.Atoi(splitTopic[5])
+	if err != nil {
+		return
 	}
+	value, err := strconv.Atoi(splitTopic[6])
+	if err != nil {
+		return
+	}
+
+	payload := []byte{uint8(0b10000000 | (addr << 1)), uint8(value)}
+	sendQueue <- PublishTopic{
+		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
+		"0003" + hex.EncodeToString(payload)}
+}
+
+func daliRaw(msg mqtt.Message, splitTopic []string) {
+	// GPIO/2/SET/DALI/RAW
+	// payload 4 byte hex convert to 2 byte
+	_, err := strconv.ParseUint(string(msg.Payload()), 16, 64)
+	if err != nil {
+		return
+	}
+	if len(msg.Payload()) != 4 {
+		return
+	}
+
+	sendQueue <- PublishTopic{
+		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
+		"0003" + string(msg.Payload())}
+}
+
+func gpioSet(topic string, splitTopic []string) {
+	// GPIO/2/SET/3/255
+	// 3 - порт
+	// 255 устанавливаемое значение (0..255)
+	fmt.Println(topic)
+	port, err := strconv.Atoi(splitTopic[3])
+	if err != nil {
+		return
+	}
+	value, err := strconv.Atoi(splitTopic[4])
+	if err != nil {
+		return
+	}
+	payload := []byte{uint8(port), uint8(value)}
+	sendQueue <- PublishTopic{
+		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
+		"0000" + hex.EncodeToString(payload)}
+
 }
 
 func subscribe(client mqtt.Client) {
-	topic := "gpio/#"
-	token := client.Subscribe(topic, 1, gpio)
+	topic := "GPIO/PUB/+"
+	token := client.Subscribe(topic, 0, evGpio)
+	token.Wait()
+	fmt.Printf("Subscribed to topic: %s\n", topic)
+	topic = "GPIO/+/SET/#"
+	token = client.Subscribe(topic, 0, setGpio)
 	token.Wait()
 	fmt.Printf("Subscribed to topic: %s\n", topic)
 }
 
-func gpio(client mqtt.Client, msg mqtt.Message) {
-	fmt.Println(msg.Topic())
+// send to GPIO module GPIO/SUB/+
+func setGpio(client mqtt.Client, msg mqtt.Message) {
+	fmt.Println(msg.Topic(), msg.Payload())
 	splitTopic := strings.Split(msg.Topic(), "/")
-	fmt.Println(splitTopic, len(splitTopic))
-	if len(splitTopic) >= 6 {
-		if splitTopic[2] == "dali" {
-			if splitTopic[3] == "set" || splitTopic[3] == "set_grp" {
-				daliSet(msg.Topic(), splitTopic)
-			}
-		}
-	} else if len(splitTopic) == 4 {
-		if splitTopic[2] == "dali" && splitTopic[3] == "raw" {
-			daliRaw(msg)
-		}
+	if compiledRegex.daliSet.MatchString(msg.Topic()) {
+		daliSet(msg.Topic(), splitTopic)
+	} else if compiledRegex.daliSetGrp.MatchString(msg.Topic()) {
+		daliSetGrp(msg.Topic(), splitTopic)
+	} else if compiledRegex.daliRaw.MatchString(msg.Topic()) {
+		daliRaw(msg, splitTopic)
+	} else if compiledRegex.gpioSet.MatchString(msg.Topic()) {
+		gpioSet(msg.Topic(), splitTopic)
 	}
+}
 
+// receive GPIO/PUB/+ from GPIO modules
+// convert to GPIO/+/EV/...
+func evGpio(client mqtt.Client, msg mqtt.Message) {
+	fmt.Println(msg.Topic(), msg.Payload())
+}
+
+func compileRegex() {
+	v0255 := `(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])`
+	v015 := `(\d|1[0-5])`
+	v063 := `(\d|[1-5]\d|6[0-3])`
+	compiledRegex.daliSet = regexp.MustCompile(`^GPIO/` + v0255 + `/SET/DALI/SET/` + v063 + `/` + v0255 + `$`)
+	compiledRegex.daliSetGrp = regexp.MustCompile(`^GPIO/` + v0255 + `/SET/DALI/SET_GRP/` + v015 + `/` + v0255 + `$`)
+	compiledRegex.daliRaw = regexp.MustCompile(`^GPIO/` + v0255 + `/SET/DALI/RAW$`)
+	compiledRegex.gpioSet = regexp.MustCompile(`^GPIO/` + v0255 + `/SET/` + v0255 + `/` + v0255 + `$`)
 }

@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"gpio_mqtt/gpio_handler"
+	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -58,14 +60,17 @@ func loadConfig() {
 func main() {
 	loadConfig()
 	go gpio_handler.Run(config)
+	err := http.ListenAndServe(":3000", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for {
 		time.Sleep(10 * time.Second)
-		fmt.Println("tick")
 	}
 }
 
 func randStr(n int) string {
-	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, n)
 	for i := range b {

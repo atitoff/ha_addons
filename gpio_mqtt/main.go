@@ -60,7 +60,8 @@ func loadConfig() {
 func main() {
 	loadConfig()
 	go gpio_handler.Run(config)
-	err := http.ListenAndServe(":3000", nil)
+	http.HandleFunc("/", wuiRootHandler)
+	err := http.ListenAndServe("localhost:8099", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,4 +78,8 @@ func randStr(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+func wuiRootHandler(w http.ResponseWriter, r *http.Request) {
+	_, _ = fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
 }

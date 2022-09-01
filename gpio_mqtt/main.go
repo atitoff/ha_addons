@@ -81,5 +81,5 @@ func randStr(n int) string {
 }
 
 func wuiRootHandler(w http.ResponseWriter, r *http.Request) {
-	_, _ = fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+	_, _ = fmt.Fprintf(w, "URL.Path = %s\n", "test")
 }

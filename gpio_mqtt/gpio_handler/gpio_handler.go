@@ -27,6 +27,7 @@ type CompiledRegex struct {
 	daliSet    *regexp.Regexp
 	daliSetGrp *regexp.Regexp
 	daliRaw    *regexp.Regexp
+	daliRawRet *regexp.Regexp
 	gpioSet    *regexp.Regexp
 }
 
@@ -81,6 +82,7 @@ func Run(settings Config) {
 	for {
 		// получаем данные для передачи и передаем
 		publishData = <-sendQueue
+		fmt.Printf("Send topic: %s  payload: %X\n", publishData.Topic, []byte(publishData.Payload))
 		token := client.Publish(publishData.Topic, 0, false, publishData.Payload)
 		token.Wait()
 	}
@@ -104,10 +106,10 @@ func daliSet(topic string, splitTopic []string) {
 	if err != nil {
 		return
 	}
-	payload := []byte{uint8(addr << 1), uint8(value)}
+	payload := []byte{0x03, uint8(addr << 1), uint8(value)}
 	sendQueue <- PublishTopic{
 		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
-		"0003" + hex.EncodeToString(payload)}
+		string(payload)}
 
 }
 
@@ -123,26 +125,30 @@ func daliSetGrp(topic string, splitTopic []string) {
 		return
 	}
 
-	payload := []byte{uint8(0b10000000 | (addr << 1)), uint8(value)}
+	payload := []byte{0x03, uint8(0b10000000 | (addr << 1)), uint8(value)}
 	sendQueue <- PublishTopic{
 		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
-		"0003" + hex.EncodeToString(payload)}
+		string(payload)}
 }
 
 func daliRaw(msg mqtt.Message, splitTopic []string) {
 	// GPIO/2/DALI/RAW
 	// payload 4 byte hex convert to 2 byte
-	_, err := strconv.ParseUint(string(msg.Payload()), 16, 64)
+
+	data, err := hex.DecodeString(string(msg.Payload()))
 	if err != nil {
 		return
 	}
-	if len(msg.Payload()) != 4 {
+	if len(data) != 2 {
 		return
 	}
-
+	if err != nil {
+		return
+	}
+	payload := []byte{3, data[0], data[1]}
 	sendQueue <- PublishTopic{
 		fmt.Sprintf("GPIO/SUB/%s", splitTopic[1]),
-		"0003" + string(msg.Payload())}
+		string(payload)}
 }
 
 func gpioSet(topic string, splitTopic []string) {
@@ -171,7 +177,7 @@ func gpioSet(topic string, splitTopic []string) {
 
 func subscribe(client mqtt.Client) {
 	topic := "GPIO/PUB/+"
-	token := client.Subscribe(topic, 0, evGpio)
+	token := client.Subscribe(topic, 0, eventFromGpio)
 	token.Wait()
 	fmt.Printf("Subscribed to topic: %s\n", topic)
 	topic = "GPIO/+/SET/#"
@@ -218,8 +224,11 @@ func sendToDali(client mqtt.Client, msg mqtt.Message) {
 
 // receive GPIO/PUB/+ from GPIO modules
 // convert to GPIO/+/EV/...
-func evGpio(client mqtt.Client, msg mqtt.Message) {
+func eventFromGpio(client mqtt.Client, msg mqtt.Message) {
 	fmt.Println(msg.Topic(), msg.Payload())
+	// 00 - PUSH
+	// 03 -
+
 }
 
 func compileRegex() {
@@ -229,5 +238,6 @@ func compileRegex() {
 	compiledRegex.daliSet = regexp.MustCompile(`^GPIO/` + v0255 + `/DALI/SET/` + v063 + `/` + v0255 + `$`)
 	compiledRegex.daliSetGrp = regexp.MustCompile(`^GPIO/` + v0255 + `/DALI/SET_GRP/` + v015 + `/` + v0255 + `$`)
 	compiledRegex.daliRaw = regexp.MustCompile(`^GPIO/` + v0255 + `/DALI/RAW$`)
+	compiledRegex.daliRawRet = regexp.MustCompile(`^GPIO/` + v0255 + `/DALI/RAW_RET$`)
 	compiledRegex.gpioSet = regexp.MustCompile(`^GPIO/(` + v0255 + `|` + v0255 + `/` + v0255 + `)/SET/` + v0255 + `/` + v0255 + `$`)
 }

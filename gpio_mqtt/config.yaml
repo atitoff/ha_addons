@@ -1,8 +1,9 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.23"
+version: "1.0.24"
 slug: "gpio_mqtt"
 init: false
+ingress: true
 arch:
   - aarch64
   - amd64

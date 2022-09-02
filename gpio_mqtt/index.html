@@ -13,7 +13,7 @@
          Bootstrap-Dark Variant CSS -->
     <link href="web/bootstrap-dark.min.css" rel="stylesheet">
 
-    <title>MQTT GPIO</title>
+    <title>{{ .Port}}</title>
 
     <!-- Optional Meta Theme Color is also supported on Safari and Chrome -->
     <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)">
@@ -21,21 +21,16 @@
 </head>
 <body style="margin: 1em">
 <button type="button" class="btn btn-primary">Поиск нового светильника DALI</button>
-<button type="button" class="btn btn-secondary">Secondary</button>
-<button type="button" class="btn btn-success">Success</button>
-<button type="button" class="btn btn-danger">Danger</button>
-<button type="button" class="btn btn-warning">Warning</button>
-<button type="button" class="btn btn-info">Info</button>
-<button type="button" class="btn btn-light">Light</button>
-<button type="button" class="btn btn-dark">Dark</button>
-
-<button type="button" class="btn btn-link">Link</button>
 
 <!-- Optional Bootstrap JavaScript -->
 <script src="web/bootstrap.bundle.min.js"></script>
 <script src="web/mqttws31.min.js"></script>
 <script>
-    client = new Paho.MQTT.Client("192.168.1.117", 8884, "clientId");
+    client = new Paho.MQTT.Client(
+        "192.168.1.117",
+        8884,
+        (Math.random() + 1).toString(36).substring(2)
+    );
 
     // set callback handlers
     client.onConnectionLost = onConnectionLost
@@ -46,9 +41,8 @@
         onSuccess: onConnect,
         userName: "mqtt",
         password: "mqtt",
-        useSSL: true
+        useSSL: true,
     });
-
 
     // called when the client connects
     function onConnect() {

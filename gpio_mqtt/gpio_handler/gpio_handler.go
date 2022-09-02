@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct {
-	MqttPort     int
-	MqttHost     string
-	MqttClientId string
-	MqttUsername string
-	MqttPassword string
-	LogLevel     string
+	MqttPort      int
+	MqttHost      string
+	MqttClientId  string
+	MqttUsername  string
+	MqttPassword  string
+	MqttPortWsSsl int
+	LogLevel      string
 }
 
 type PublishTopic struct {

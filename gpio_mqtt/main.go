@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gpio_mqtt/gpio_handler"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
@@ -27,13 +28,15 @@ func loadConfig() {
 	// --mqttuser=addons			3
 	// --mqttpass=airoogheng0phai9ke6FeiR1rohnoop1aong1oocoonah2oocim9aizohweij1mi 	4
 	// MqttPort=1883 				5
-	// --LogLevel                   6  ]
+	// MqttPortWsSsl=8884			6
+	// --LogLevel                   7  ]
 	var err error
 
 	randId := randStr(10)
 
 	if len(os.Args) <= 5 {
 		config.MqttPort = 1883
+		config.MqttPortWsSsl = 8884
 		config.MqttHost = "192.168.1.117"
 		config.MqttClientId = "mqtt_gpio" + "_" + randId
 		config.MqttUsername = "mqtt"
@@ -44,11 +47,15 @@ func loadConfig() {
 		if err != nil {
 			config.MqttPort = 1883
 		}
+		config.MqttPortWsSsl, err = strconv.Atoi(os.Args[6])
+		if err != nil {
+			config.MqttPort = 8884
+		}
 		config.MqttHost = os.Args[1]
 		config.MqttClientId = os.Args[2] + "_" + randId
 		config.MqttUsername = os.Args[3]
 		config.MqttPassword = os.Args[4]
-		config.LogLevel = os.Args[6]
+		config.LogLevel = os.Args[7]
 	}
 
 	fmt.Printf(
@@ -81,11 +88,28 @@ func randStr(n int) string {
 	return string(b)
 }
 
+type TemplateFields struct {
+	Host     string
+	Port     string
+	Login    string
+	Password string
+}
+
 func serveFiles(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
 	p := "." + r.URL.Path
 	if p == "./" {
-		p = "index.html"
+		// p = "index.html"
+		data := TemplateFields{
+			Login:    config.MqttUsername,
+			Password: config.MqttPassword,
+			Host:     config.MqttHost,
+			Port:     fmt.Sprintf("%d", config.MqttPortWsSsl),
+		}
+		tmpl, _ := template.ParseFiles("index.html")
+		_ = tmpl.Execute(w, data)
+	} else {
+		http.ServeFile(w, r, p)
 	}
-	http.ServeFile(w, r, p)
+
 }

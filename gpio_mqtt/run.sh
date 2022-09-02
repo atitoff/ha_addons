@@ -19,4 +19,4 @@ then
 fi
 
 
-exec /gpio_mqtt $MQTT_HOST $MqttClientId $MQTT_USER $MQTT_PASSWORD $MqttPort $LogLevel
+exec /gpio_mqtt $MQTT_HOST $MqttClientId $MQTT_USER $MQTT_PASSWORD $MqttPort MqttPortWsSsl $LogLevel

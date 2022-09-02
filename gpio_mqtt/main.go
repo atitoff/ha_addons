@@ -60,7 +60,7 @@ func loadConfig() {
 
 func main() {
 	loadConfig()
-	go gpio_handler.Run(config)
+	// go gpio_handler.Run(config)
 
 	// printFiles()
 

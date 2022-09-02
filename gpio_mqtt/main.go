@@ -60,9 +60,9 @@ func loadConfig() {
 
 func main() {
 	loadConfig()
-	// go gpio_handler.Run(config)
+	go gpio_handler.Run(config)
 
-	printFiles()
+	// printFiles()
 
 	http.HandleFunc("/", serveFiles)
 	err := http.ListenAndServe("0.0.0.0:8099", nil)

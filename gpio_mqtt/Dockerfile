@@ -5,8 +5,8 @@ FROM $BUILD_FROM
 COPY gpio_mqtt /
 COPY run.sh /
 COPY index.html /
-COPY static/js/bootstrap-dark.min.css /
-COPY static/js/bootstrap.bundle.min.js /
+COPY bootstrap-dark.min.css /
+COPY bootstrap.bundle.min.js /
 
 RUN chmod a+x /gpio_mqtt
 RUN chmod a+x /run.sh

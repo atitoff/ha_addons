@@ -1,5 +1,0 @@
-Broker: homeassistant
-Port: 1883
-ClientID: mqtt_gpio
-MqttUsername: mqtt
-MqttPassword: mqtt

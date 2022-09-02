@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -62,8 +61,6 @@ func main() {
 	loadConfig()
 	// go gpio_handler.Run(config)
 
-	// printFiles()
-
 	http.HandleFunc("/", serveFiles)
 	err := http.ListenAndServe("0.0.0.0:8099", nil)
 	if err != nil {
@@ -88,21 +85,7 @@ func serveFiles(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
 	p := "." + r.URL.Path
 	if p == "./" {
-		p = "web/index.html"
+		p = "index.html"
 	}
 	http.ServeFile(w, r, p)
-}
-
-func printFiles() {
-	err := filepath.Walk("/",
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			fmt.Println(path, info.Size())
-			return nil
-		})
-	if err != nil {
-		log.Println(err)
-	}
 }

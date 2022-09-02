@@ -60,7 +60,7 @@ func loadConfig() {
 
 func main() {
 	loadConfig()
-	go gpio_handler.Run(config)
+	// go gpio_handler.Run(config)
 
 	printFiles()
 
@@ -94,7 +94,7 @@ func serveFiles(w http.ResponseWriter, r *http.Request) {
 }
 
 func printFiles() {
-	err := filepath.Walk(".",
+	err := filepath.Walk("/",
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err

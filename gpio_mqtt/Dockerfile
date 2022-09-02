@@ -1,8 +1,9 @@
+ARG BUILD_ARCH
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
 # Copy data for add-on
-COPY ${arch}_gpio_mqtt /gpio_mqtt
+COPY ${BUILD_ARCH}_gpio_mqtt /gpio_mqtt
 COPY run.sh /
 COPY web/ /web/
 COPY index.html /

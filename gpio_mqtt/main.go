@@ -88,7 +88,7 @@ func serveFiles(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
 	p := "." + r.URL.Path
 	if p == "./" {
-		p = "index.html"
+		p = "web/index.html"
 	}
 	http.ServeFile(w, r, p)
 }

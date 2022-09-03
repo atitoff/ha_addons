@@ -14,6 +14,7 @@ MQTT_PASSWORD=$(bashio::services mqtt "password")
 if [[ -r "$CONFIG_PATH" ]]
 then
   MqttPort="$(jq --raw-output '.MqttPort // empty' $CONFIG_PATH)"
+  MqttPortWsSsl="$(jq --raw-output '.MqttPortWsSsl // empty' $CONFIG_PATH)"
   MqttClientId="$(jq --raw-output '.MqttClientId // empty' $CONFIG_PATH)"
   LogLevel="$(jq --raw-output '.LogLevel // empty' $CONFIG_PATH)"
 fi

@@ -26,9 +26,13 @@
 <script src="web/bootstrap.bundle.min.js"></script>
 <script src="web/mqttws31.min.js"></script>
 <script>
+    let Host = {{ .Host}}
+    let Port = {{ .Port}}
+    let Login = {{ .Login}}
+    let Password = {{ .Password}}
     client = new Paho.MQTT.Client(
-        "192.168.1.117",
-        8884,
+        Host,
+        parseInt(Port),
         (Math.random() + 1).toString(36).substring(2)
     );
 
@@ -39,8 +43,8 @@
     // connect the client
     client.connect({
         onSuccess: onConnect,
-        userName: "mqtt",
-        password: "mqtt",
+        userName: Login,
+        password: Password,
         useSSL: true,
     });
 

@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -63,7 +64,11 @@ func main() {
 	loadConfig()
 	go gpio_handler.Run(config)
 
-	http.HandleFunc("/", serveFiles)
+	fs := http.FileServer(http.Dir("./web/static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.HandleFunc("/", serveTemplate)
+
 	err := http.ListenAndServe("0.0.0.0:8099", nil)
 	if err != nil {
 		log.Fatal(err)
@@ -90,21 +95,16 @@ type TemplateFields struct {
 	Password string
 }
 
-func serveFiles(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
-	p := "." + r.URL.Path
-	if p == "./" {
-		// p = "index.html"
+func serveTemplate(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
 		data := TemplateFields{
 			Login:    config.MqttUsername,
 			Password: config.MqttPassword,
 			Host:     config.MqttHost,
 			Port:     fmt.Sprintf("%d", config.MqttPortWsSsl),
 		}
-		tmpl, _ := template.ParseFiles("index.html")
+		lp := filepath.Join("web", "index.html")
+		tmpl, _ := template.ParseFiles(lp)
 		_ = tmpl.Execute(w, data)
-	} else {
-		http.ServeFile(w, r, p)
 	}
-
 }

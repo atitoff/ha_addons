@@ -40,6 +40,8 @@ func loadConfig() {
 		config.MqttUsername = "mqtt"
 		config.MqttPassword = "mqtt"
 		config.LogLevel = "warning"
+		config.CertFile = "server.crt"
+		config.KeyFile = "server.key"
 	} else {
 		config.MqttPort, err = strconv.Atoi(os.Args[5])
 		if err != nil {
@@ -54,6 +56,8 @@ func loadConfig() {
 		config.MqttUsername = os.Args[3]
 		config.MqttPassword = os.Args[4]
 		config.LogLevel = os.Args[7]
+		config.CertFile = "/ssl/fullchain.pem"
+		config.KeyFile = "/ssl/privkey.pem"
 	}
 
 	fmt.Printf(
@@ -63,12 +67,6 @@ func loadConfig() {
 }
 
 func main() {
-	body, err := os.ReadFile("/ssl/fullchain.pem")
-	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
-	}
-	fmt.Println(string(body))
-
 	loadConfig()
 	go gpio_handler.Run(config)
 
@@ -78,7 +76,8 @@ func main() {
 
 	http.HandleFunc("/", serveTemplate)
 
-	_ = http.ListenAndServe("0.0.0.0:8099", nil)
+	// _ = http.ListenAndServe("0.0.0.0:8099", nil)
+	_ = http.ListenAndServeTLS("0.0.0.0:8099", config.CertFile, config.KeyFile, nil)
 
 }
 

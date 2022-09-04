@@ -20,6 +20,8 @@ type Config struct {
 	MqttPassword  string
 	MqttPortWsSsl int
 	LogLevel      string
+	CertFile      string
+	KeyFile       string
 }
 
 type PublishTopic struct {

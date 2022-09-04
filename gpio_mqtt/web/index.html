@@ -13,61 +13,37 @@
          Bootstrap-Dark Variant CSS -->
     <link href="static/js/bootstrap-dark.min.css" rel="stylesheet">
 
-    <title>{{ .Port}}</title>
+    <title></title>
 
     <!-- Optional Meta Theme Color is also supported on Safari and Chrome -->
     <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#eeeeee" media="(prefers-color-scheme: dark)">
 </head>
 <body style="margin: 1em">
+
+
 <button type="button" class="btn btn-primary">Поиск нового светильника DALI</button>
 
 <!-- Optional Bootstrap JavaScript -->
 <script src="static/js/bootstrap.bundle.min.js"></script>
-<script src="static/js/mqttws31.min.js"></script>
+<script src="static/js/main.js"></script>
+<script src="static/js/mqtt.js"></script>
 <script>
-    let Host = {{ .Host}}
-    let Port = {{ .Port}}
-    let Login = {{ .Login}}
-    let Password = {{ .Password}}
-    client = new Paho.MQTT.Client(
-        Host,
-        parseInt(Port),
-        (Math.random() + 1).toString(36).substring(2)
-    );
+    let fw = new FW2('ws', "{{ .Token}}", 600)
 
-    // set callback handlers
-    client.onConnectionLost = onConnectionLost
-    client.onMessageArrived = onMessageArrived
+    window.onload = async function () {
+        await fw.init()
+        console.log("connected")
+        fw.notify.addEventListener('asa', (e) => {
+            let params = e.detail
+            console.log('asa', params)
+        })
 
-    // connect the client
-    client.connect({
-        onSuccess: onConnect,
-        userName: Login,
-        password: Password,
-        useSSL: true,
-    });
-
-    // called when the client connects
-    function onConnect() {
-        // Once a connection has been made, make a subscription and send a message.
-        console.log("onConnect");
-        client.subscribe("World");
     }
 
-    // called when the client loses its connection
-    function onConnectionLost(responseObject) {
-        if (responseObject.errorCode !== 0) {
-            console.log("onConnectionLost:"+responseObject.errorMessage);
-        }
+    async function run() {
+        await fw.call_rpc('MyFunc1', {'update': 1})
     }
-
-    // called when a message arrives
-    function onMessageArrived(message) {
-        console.log("onMessageArrived:"+ message.payloadString);
-        console.log(`Topic:     ` + message.destinationName);
-    }
-
 </script>
 </body>
 </html>

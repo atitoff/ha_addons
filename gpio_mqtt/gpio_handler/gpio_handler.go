@@ -2,8 +2,10 @@ package gpio_handler
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"gpio_mqtt/jsonrpc2"
 	"regexp"
 	"strconv"
 	"strings"
@@ -66,6 +68,7 @@ func shiftArray(array *[]string, position int, value string) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func Run(settings Config) {
+	jsonrpc2.Registry("MyFunc1", MyFunc1)
 	compileRegex()
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", settings.MqttHost, settings.MqttPort))
@@ -241,4 +244,12 @@ func compileRegex() {
 	compiledRegex.daliRaw = regexp.MustCompile(`^GPIO/` + v0255 + `/DALI/RAW$`)
 	compiledRegex.daliRawRet = regexp.MustCompile(`^GPIO/` + v0255 + `/DALI/RAW_RET$`)
 	compiledRegex.gpioSet = regexp.MustCompile(`^GPIO/(` + v0255 + `|` + v0255 + `/` + v0255 + `)/SET/` + v0255 + `/` + v0255 + `$`)
+}
+
+func MyFunc1(rpc jsonrpc2.RpcData) {
+	fmt.Println("MyFunc1 called", rpc.Params)
+	notify, _ := json.Marshal(3)
+	jsonrpc2.Notify(rpc, "asa", string(notify))
+	ret, _ := json.Marshal([]string{"John", "Andrew", "Robert"})
+	jsonrpc2.Return(rpc, ret)
 }

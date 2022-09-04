@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/net/websocket"
 	"gpio_mqtt/gpio_handler"
+	"gpio_mqtt/jsonrpc2"
 	"html/template"
 	"log"
 	"math/rand"
@@ -64,18 +66,20 @@ func main() {
 	loadConfig()
 	go gpio_handler.Run(config)
 
+	http.Handle("/ws", websocket.Handler(serve))
 	fs := http.FileServer(http.Dir("./web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("/", serveTemplate)
 
-	err := http.ListenAndServe("0.0.0.0:8099", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for {
-		time.Sleep(10 * time.Second)
-	}
+	_ = http.ListenAndServe("0.0.0.0:8099", nil)
+
+}
+
+func serve(ws *websocket.Conn) {
+	log.Printf("Handler starting")
+	jsonrpc2.Serve(ws)
+	log.Printf("Handler exiting")
 }
 
 func randStr(n int) string {
@@ -89,19 +93,15 @@ func randStr(n int) string {
 }
 
 type TemplateFields struct {
-	Host     string
-	Port     string
-	Login    string
-	Password string
+	Token string
 }
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
+		token := randStr(20)
+		jsonrpc2.AddToken(token)
 		data := TemplateFields{
-			Login:    config.MqttUsername,
-			Password: config.MqttPassword,
-			Host:     config.MqttHost,
-			Port:     fmt.Sprintf("%d", config.MqttPortWsSsl),
+			Token: token,
 		}
 		lp := filepath.Join("web", "index.html")
 		tmpl, _ := template.ParseFiles(lp)

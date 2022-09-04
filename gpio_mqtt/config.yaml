@@ -1,6 +1,6 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.53"
+version: "1.0.54"
 slug: "gpio_mqtt"
 init: false
 ingress: true
@@ -8,6 +8,8 @@ arch:
   - amd64
 services:
   - "mqtt:need"
+map:
+  - ssl
 options:
   MqttPort: 1883
   MqttPortWsSsl: 8884

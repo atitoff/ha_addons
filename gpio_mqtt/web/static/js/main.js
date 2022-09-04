@@ -30,6 +30,13 @@ class fw2fn {
         }
         return ret
     }
+
+    static disable_elements(disable = true){
+        let controls = document.querySelectorAll("button, input, select, textarea");
+        for (let c of controls) {
+            c.disabled = disable;
+        }
+    }
 }
 
 

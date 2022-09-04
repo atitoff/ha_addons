@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -68,7 +69,7 @@ func shiftArray(array *[]string, position int, value string) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func Run(settings Config) {
-	jsonrpc2.Registry("MyFunc1", MyFunc1)
+	jsonrpc2.Registry("findNewLampDali", findNewLampDali)
 	compileRegex()
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", settings.MqttHost, settings.MqttPort))
@@ -246,8 +247,9 @@ func compileRegex() {
 	compiledRegex.gpioSet = regexp.MustCompile(`^GPIO/(` + v0255 + `|` + v0255 + `/` + v0255 + `)/SET/` + v0255 + `/` + v0255 + `$`)
 }
 
-func MyFunc1(rpc jsonrpc2.RpcData) {
+func findNewLampDali(rpc jsonrpc2.RpcData) {
 	fmt.Println("MyFunc1 called", rpc.Params)
+	time.Sleep(time.Second * 3)
 	notify, _ := json.Marshal(3)
 	jsonrpc2.Notify(rpc, "asa", string(notify))
 	ret, _ := json.Marshal([]string{"John", "Andrew", "Robert"})

@@ -22,7 +22,11 @@
 <body style="margin: 1em">
 
 
-<button type="button" class="btn btn-primary">Поиск нового светильника DALI</button>
+
+<button id="find_new_lamp_dali" type="button" class="btn btn-primary">
+    <span id="find_new_lamp_dali_spinner" class="d-none spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    Поиск нового светильника DALI
+</button>
 
 <!-- Optional Bootstrap JavaScript -->
 <script src="static/js/bootstrap.bundle.min.js"></script>
@@ -32,6 +36,7 @@
     let fw = new FW2('ws', "{{ .Token}}", 600)
 
     window.onload = async function () {
+        fw2fn.init()
         await fw.init()
         console.log("connected")
         fw.notify.addEventListener('asa', (e) => {
@@ -43,6 +48,15 @@
 
     async function run() {
         await fw.call_rpc('MyFunc1', {'update': 1})
+    }
+
+    document.getElementById('find_new_lamp_dali').onclick = async function (){
+        let spinner = document.getElementById("find_new_lamp_dali_spinner")
+        spinner.classList.remove('d-none')
+        fw2fn.disable_elements()
+        console.log(await fw.call_rpc('findNewLampDali', {'update': 1}))
+        spinner.classList.add('d-none')
+        fw2fn.disable_elements(false)
     }
 </script>
 </body>

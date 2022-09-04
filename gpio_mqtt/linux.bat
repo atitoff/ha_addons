@@ -6,7 +6,7 @@ rem set GOOS=windows
 rem go tool dist install -v pkg/runtime
 rem go install -v -a std
 
-go build
+rem go build
 
 
 rem set GOARCH=ARM64

@@ -75,9 +75,12 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("/", serveTemplate)
+	go func() {
+		_ = http.ListenAndServe("0.0.0.0:8099", nil)
+	}()
 
-	// _ = http.ListenAndServe("0.0.0.0:8099", nil)
-	_ = http.ListenAndServeTLS("0.0.0.0:8099", config.CertFile, config.KeyFile, nil)
+	//
+	_ = http.ListenAndServeTLS("0.0.0.0:8098", config.CertFile, config.KeyFile, nil)
 
 }
 

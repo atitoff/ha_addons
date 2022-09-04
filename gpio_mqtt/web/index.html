@@ -33,7 +33,7 @@
 <script src="static/js/main.js"></script>
 <script src="static/js/mqtt.js"></script>
 <script>
-    let fw = new FW2('ws', "{{ .Token}}", 600)
+    let fw = new FW2('ws', "{{ .Token}}", 600, true)
 
     window.onload = async function () {
         fw2fn.init()

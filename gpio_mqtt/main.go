@@ -63,6 +63,12 @@ func loadConfig() {
 }
 
 func main() {
+	body, err := os.ReadFile("/ssl/fullchain.pem")
+	if err != nil {
+		log.Fatalf("unable to read file: %v", err)
+	}
+	fmt.Println(string(body))
+
 	loadConfig()
 	go gpio_handler.Run(config)
 

@@ -56,7 +56,14 @@
         let spinner = document.getElementById("find_new_lamp_dali_spinner")
         spinner.classList.remove('d-none')
         fw2fn.disable_elements()
-        let a = await jrpc.call('findNewLampDali', {a: 2, b: 3})
+        await fetch(`${document.referrer}/rpc` + encodeURIComponent(
+            JSON.stringify({jsonrpc: "2.0", method: "findNewLampDali", id: 4, params: {a: 2, b: 3}})
+        ), {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8' // The type of data you're sending
+            }
+        });
         console.log(a)
         spinner.classList.add('d-none')
         fw2fn.disable_elements(false)

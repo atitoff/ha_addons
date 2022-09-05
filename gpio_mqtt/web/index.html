@@ -34,9 +34,10 @@
 <script src="static/js/simple-jsonrpc-js.min.js"></script>
 <script>
     let jrpc = simple_jsonrpc.connect_xhr('/rpc');
-
+    
     window.onload = async function () {
         fw2fn.init()
+        console.log('location.hostname', location.hostname)
 
         await fetch('/rpc', {
             method: 'POST',

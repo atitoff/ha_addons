@@ -23,3 +23,5 @@ gpio_mqtt/server.crt
 gpio_mqtt/server.crt
 gpio_mqtt/server.crt
 gpio_mqtt/server.key
+*.crt
+*.key

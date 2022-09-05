@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+gpio_mqtt/server.crt
+gpio_mqtt/server.crt
+gpio_mqtt/server.crt
+gpio_mqtt/server.key

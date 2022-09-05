@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"golang.org/x/net/websocket"
+	jrpc "github.com/gumeniukcom/golang-jsonrpc2"
 	"gpio_mqtt/gpio_handler"
-	"gpio_mqtt/jsonrpc2"
 	"html/template"
-	"log"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -18,12 +18,6 @@ import (
 type Config = gpio_handler.Config
 
 var config Config
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
 
 func loadConfig() {
 	// $MQTT_HOST $MqttClientId $MQTT_USER $MQTT_PASSWORD $MqttPort $MqttPortWsSsl $LogLevel
@@ -68,26 +62,33 @@ func loadConfig() {
 
 func main() {
 	loadConfig()
+	config.Rpc = jrpc.New()
+
 	go gpio_handler.Run(config)
 
-	http.Handle("/ws", websocket.Handler(serve))
+	go http.HandleFunc("/rpc", rpcServe)
 	fs := http.FileServer(http.Dir("./web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("/", serveTemplate)
-	go func() {
-		_ = http.ListenAndServe("0.0.0.0:8099", nil)
-	}()
 
-	//
-	_ = http.ListenAndServeTLS("0.0.0.0:8098", config.CertFile, config.KeyFile, nil)
+	_ = http.ListenAndServe("0.0.0.0:8099", nil)
 
 }
 
-func serve(ws *websocket.Conn) {
-	log.Printf("Handler starting")
-	jsonrpc2.Serve(ws)
-	log.Printf("Handler exiting")
+func rpcServe(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	defer r.Body.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if _, err = w.Write(config.Rpc.HandleRPCJsonRawMessage(ctx, body)); err != nil {
+		panic(err)
+	}
 }
 
 func randStr(n int) string {
@@ -100,19 +101,10 @@ func randStr(n int) string {
 	return string(b)
 }
 
-type TemplateFields struct {
-	Token string
-}
-
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
-		token := randStr(20)
-		jsonrpc2.AddToken(token)
-		data := TemplateFields{
-			Token: token,
-		}
 		lp := filepath.Join("web", "index.html")
 		tmpl, _ := template.ParseFiles(lp)
-		_ = tmpl.Execute(w, data)
+		_ = tmpl.Execute(w, nil)
 	}
 }

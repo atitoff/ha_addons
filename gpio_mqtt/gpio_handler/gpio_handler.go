@@ -1,11 +1,12 @@
 package gpio_handler
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"gpio_mqtt/jsonrpc2"
+	jrpc "github.com/gumeniukcom/golang-jsonrpc2"
 	"regexp"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ type Config struct {
 	LogLevel      string
 	CertFile      string
 	KeyFile       string
+	Rpc           *jrpc.JSONRPC
 }
 
 type PublishTopic struct {
@@ -71,7 +73,7 @@ func shiftArray(array *[]string, position int, value string) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func Run(settings Config) {
-	jsonrpc2.Registry("findNewLampDali", findNewLampDali)
+	_ = settings.Rpc.RegisterMethod("findNewLampDali", findNewLampDali)
 	compileRegex()
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", settings.MqttHost, settings.MqttPort))
@@ -249,11 +251,10 @@ func compileRegex() {
 	compiledRegex.gpioSet = regexp.MustCompile(`^GPIO/(` + v0255 + `|` + v0255 + `/` + v0255 + `)/SET/` + v0255 + `/` + v0255 + `$`)
 }
 
-func findNewLampDali(rpc jsonrpc2.RpcData) {
-	fmt.Println("MyFunc1 called", rpc.Params)
-	time.Sleep(time.Second * 3)
-	notify, _ := json.Marshal(3)
-	jsonrpc2.Notify(rpc, "asa", string(notify))
-	ret, _ := json.Marshal([]string{"John", "Andrew", "Robert"})
-	jsonrpc2.Return(rpc, ret)
+func findNewLampDali(ctx context.Context, data json.RawMessage) (json.RawMessage, int, error) {
+	if data == nil {
+		return nil, jrpc.InvalidRequestErrorCode, fmt.Errorf("empty request")
+	}
+	time.Sleep(time.Second)
+	return []byte("33"), jrpc.OK, nil
 }

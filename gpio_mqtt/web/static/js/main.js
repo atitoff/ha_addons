@@ -69,11 +69,10 @@ class FW2 {
         const _this = this
         let protocol = 'ws'
         if (this._wss) protocol = 'wss'
-        this._ws = new WebSocket(`${protocol}://${location.hostname}:8098/${this._url}`)
+        this._ws = new WebSocket(`${protocol}://${location.hostname}:${location.port}/${this._url}`)
         this._ws.onopen = () => {
             this._connect_f = true
             this._ws.send(this.token)
-            run()
         }
         this._ws.onmessage = (m) => {
             this._receive_rpc(m)

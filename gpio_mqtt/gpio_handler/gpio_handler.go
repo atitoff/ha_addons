@@ -256,5 +256,5 @@ func findNewLampDali(ctx context.Context, data json.RawMessage) (json.RawMessage
 		return nil, jrpc.InvalidRequestErrorCode, fmt.Errorf("empty request")
 	}
 	time.Sleep(time.Second)
-	return []byte("33"), jrpc.OK, nil
+	return []byte("44"), jrpc.OK, nil
 }

@@ -31,7 +31,7 @@ class fw2fn {
         return ret
     }
 
-    static disable_elements(disable = true){
+    static disable_elements(disable = true) {
         let controls = document.querySelectorAll("button, input, select, textarea");
         for (let c of controls) {
             c.disabled = disable;
@@ -928,6 +928,41 @@ class TabulatorLocale {
             }
         }
     }
+}
+
+class PostJsonRpc {
+    constructor(url, cookies = true) {
+        const _this = this
+        this._url = url
+        this._cookies = cookies
+        this._i = 0
+
+    }
+
+    async send(rpc_name, data) {
+        let ret
+        this._i++
+        let credentials = "omit"
+        if (this._cookies) {
+            credentials = "same-origin"
+        }
+        try {
+            let d = await fetch(`${this._url}`, {
+                method: 'POST',
+                credentials: credentials,
+                headers: {
+                    'Content-type': 'application/text; charset=UTF-8' // The type of data you're sending
+                },
+                body: `{"jsonrpc": "2.0", "method": "${rpc_name}", "params": ${JSON.stringify(data)}, "id": ${this._i}}`
+            })
+            ret = await d.json()
+            ret = ret.result
+        } catch (error) {
+            return false
+        }
+        return ret
+    }
+
 }
 
 //endregion

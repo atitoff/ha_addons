@@ -33,26 +33,17 @@
 <script src="static/js/main.js"></script>
 <script src="static/js/simple-jsonrpc-js.min.js"></script>
 <script>
-    let jrpc = simple_jsonrpc.connect_xhr('/rpc');
+    let rpc = new PostJsonRpc("rpc")
 
     window.onload = async function () {
         fw2fn.init()
-        console.log('location.hostname', location.hostname)
-        console.log('document.referrer', document.referrer)
     }
 
     document.getElementById('find_new_lamp_dali').onclick = async function () {
         let spinner = document.getElementById("find_new_lamp_dali_spinner")
         spinner.classList.remove('d-none')
         fw2fn.disable_elements()
-        await fetch(`rpc`
-        , {
-            method: 'POST',
-            credentials: "same-origin",
-            headers: {
-                'Content-type': 'application/text; charset=UTF-8' // The type of data you're sending
-            }
-        });
+        let ret = await rpc.send("findNewLampDali", 33)
         spinner.classList.add('d-none')
         fw2fn.disable_elements(false)
     }

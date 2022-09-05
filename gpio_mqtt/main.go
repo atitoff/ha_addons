@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	jrpc "github.com/gumeniukcom/golang-jsonrpc2"
 	"gpio_mqtt/gpio_handler"
 	"html/template"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -75,20 +77,23 @@ func main() {
 }
 
 func rpcServe(w http.ResponseWriter, r *http.Request) {
-	//ctx := context.Background()
-	//body, err := io.ReadAll(r.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer r.Body.Close()
-	//
-	//w.Header().Set("Content-Type", "application/json")
-	//w.WriteHeader(http.StatusOK)
-	//if _, err = w.Write(config.Rpc.HandleRPCJsonRawMessage(ctx, body)); err != nil {
-	//	panic(err)
-	//}
-	time.Sleep(time.Second)
-	w.Write([]byte("ok"))
+	ctx := context.Background()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(r.Body)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if _, err = w.Write(config.Rpc.HandleRPCJsonRawMessage(ctx, body)); err != nil {
+		panic(err)
+	}
 }
 
 func randStr(n int) string {

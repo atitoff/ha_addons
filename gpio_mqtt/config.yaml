@@ -1,6 +1,6 @@
 name: "GPIO MQTT"
 description: "Gate to GPIO module with MQTT"
-version: "1.0.67"
+version: "1.0.68"
 slug: "gpio_mqtt"
 init: false
 ingress: true

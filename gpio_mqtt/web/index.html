@@ -45,10 +45,9 @@
         let spinner = document.getElementById("find_new_lamp_dali_spinner")
         spinner.classList.remove('d-none')
         fw2fn.disable_elements()
-        await fetch(`rpc` + `?id=`+ encodeURIComponent(
-            JSON.stringify({jsonrpc: "2.0", method: "findNewLampDali", id: 4, params: {a: 2, b: 3}})
-        ), {
-            method: 'GET',
+        await fetch(`rpc`
+        , {
+            method: 'POST',
             credentials: "same-origin",
             headers: {
                 'Content-type': 'application/text; charset=UTF-8' // The type of data you're sending

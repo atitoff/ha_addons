@@ -199,6 +199,7 @@ class FW2 {
 
 }
 
+
 class StoredInputs {
 
     constructor(fw, rpc_name) {
@@ -268,6 +269,7 @@ class StoredInputs {
 
     }
 }
+
 
 class PhoneButton {
     // {asterisk_name: {phone_number: [PhoneButton, PhoneButton, ...]}}
@@ -401,6 +403,22 @@ class BootstrapDialogsLng {
         return this._ret(w)
     }
 
+    no() {
+        let w = {
+            'en': 'No',
+            'ru': 'Нет'
+        }
+        return this._ret(w)
+    }
+
+    yes() {
+        let w = {
+            'en': 'Yes',
+            'ru': 'Да'
+        }
+        return this._ret(w)
+    }
+
     _ret(w) {
         if (w[this._lng]) {
             return w[this._lng]
@@ -411,158 +429,77 @@ class BootstrapDialogsLng {
 
 }
 
-class BootstrapDialogs {
-    constructor() {
-        this._recalc_z_index()
-        this._lng = new BootstrapDialogsLng('ru')
-    }
 
-    async confirm(title, body, params = {}) {
-        if (body instanceof Element && params['onsubmit_fn']) {
-            await this._confirm_form(title, body, params)
-        } else {
-            return await this._confirm_text(title, body, params)
+class BsDialogs {
+    get _options_default() {
+        return {
+            lng: "en",
+            centered: true,
+            backdrop: 'static',
+            keyboard: true,
+            focus: true,
+            close: true,
+            size: '',
+            fullscreen: null,
+            scrollable: false
         }
     }
 
-    _show_dialog(modal) {
-        modal.show()
-    }
-
-    async _confirm_text(title, body, params) {
-        let only_ok = false
-        if (params['only_ok']) {
-            only_ok = true
-        }
-        let dlg = this._create_confirm_dialog(title, body, params, only_ok)
-        let ok_button = dlg.btn_ok
-        let dialog = new bootstrap.Modal(dlg.modal, {backdrop: 'static'})
-        setTimeout(this._show_dialog, 0, dialog)
-
-        return new Promise((resolve, reject) => {
-            ok_button.onclick = function () {
-                resolve(true)
-                dialog.hide()
-                dlg.modal.remove()
-            }
-
-            dlg.modal.addEventListener('hide.bs.modal', function (e) {
-                resolve(false)
-                dlg.modal.remove()
-            })
-        })
-    }
-
-    async _confirm_form(title, body, params) {
+    constructor(options = {}) {
         const _this = this
-        let dlg = this._create_confirm_dialog(title, body, params)
-        let dialog = new bootstrap.Modal(dlg.modal, {backdrop: 'static'})
-        let cln_frm = body.cloneNode(true);
-        let submit_btn = document.createElement('button')
-        submit_btn.type = 'submit'
-        submit_btn.hidden = true
-
-        cln_frm.onsubmit = async function (e) {
-            e.preventDefault()
-            let ser = _this._serialize_form(cln_frm)
-            if (await params.onsubmit_fn(ser, cln_frm)) {
-                dialog.hide()
-                dlg.modal.remove()
-            }
+        this._recalculate_z_index()
+        this._options = Object.assign({}, this._options_default, options)
+        this._lng = new BootstrapDialogsLng(this._options.lng)
+        this._bs_options = {
+            backdrop: this._options.backdrop,
+            keyboard: this._options.keyboard,
+            focus: this._options.focus
         }
-
-        cln_frm.appendChild(submit_btn)
-        cln_frm.hidden = false
-        dlg.body_div.append(cln_frm)
-        let ok_button = dlg.btn_ok
-        setTimeout(this._show_dialog, 0, dialog)
-
-        ok_button.onclick = function () {
-            submit_btn.click()
-        }
-
-        dlg.modal.addEventListener('hide.bs.modal', function (e) {
-            dlg.modal.remove()
-            params.onsubmit_fn(false, false)
-        })
+        this._modal_div = document.createElement('div')
+        this._modal_div.className = 'modal fade'
+        this._modal_div.tabIndex = -1
+        this._modal_div.insertAdjacentHTML('beforeend', this._modal_html())
+        this._modal_header = this._modal_div.querySelector('h5.modal-title')
+        this._modal_body = this._modal_div.querySelector('div.modal-body')
+        this._modal_footer = this._modal_div.querySelector('div.modal-footer')
+        this._modal_close = this._modal_div.querySelector('button.btn-close')
+        document.body.appendChild(this._modal_div)
     }
 
-    _create_confirm_dialog(title, body, params, only_ok = false) {
-        let modal_div = document.createElement('div')
-        modal_div.className = 'modal fade'
-        modal_div.dataset.backdrop = 'static'
-        modal_div.role = 'dialog'
-        modal_div.setAttribute('aria-hidden', 'true')
-        let modal_dialog_div = document.createElement('div')
-        modal_dialog_div.className = 'modal-dialog'
-        let modal_content_div = document.createElement('div')
-        modal_content_div.className = 'modal-content'
-        let modal_header_div = document.createElement('div')
-        modal_header_div.className = 'modal-header'
-        modal_header_div.insertAdjacentHTML('beforeend', `<h5 class="modal-title">${title}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>`)
-        modal_content_div.appendChild(modal_header_div)
-
-        let modal_body_div = document.createElement('div')
-        modal_body_div.className = 'modal-body'
-        if (typeof body === 'string') {
-            modal_body_div.insertAdjacentHTML('beforeend', body)
-            if (body.length === 0) {
-                modal_header_div.classList.add('border-0')
-                modal_body_div.classList.add('p-0')
+    _modal_html() {
+        let cls = ['modal-dialog']
+        if (this._options.centered) {
+            cls.push('modal-dialog-centered')
+        }
+        if (this._options.size !== '') {
+            cls.push('modal-' + this._options.size)
+        }
+        if (this._options.fullscreen !== null) {
+            if (this._options.fullscreen === '') {
+                cls.push('modal-fullscreen')
+            } else {
+                cls.push('modal-fullscreen-' + this._options.fullscreen)
             }
         }
-        modal_content_div.appendChild(modal_body_div)
-
-        let modal_footer_div = document.createElement('div')
-        modal_footer_div.className = 'modal-footer'
-        if (!only_ok) {
-            let btn_cancel = document.createElement('button')
-            btn_cancel.className = 'btn btn-secondary'
-            btn_cancel.textContent = this._lng.cancel()
-            btn_cancel.dataset.bsDismiss = "modal"
-            btn_cancel.type = "button"
-            modal_footer_div.appendChild(btn_cancel)
+        if (this._options.scrollable) {
+            cls.push('modal-dialog-scrollable')
         }
-        let btn_ok = document.createElement('button')
-        btn_ok.className = 'btn btn-primary'
-        // set caption
-        if (params.ok_caption !== undefined) {
-            btn_ok.textContent = params.ok_caption
-        } else {
-            btn_ok.textContent = this._lng.ok()
-        }
-        btn_ok.type = "button"
-        // append
-        modal_footer_div.appendChild(btn_ok)
-        modal_content_div.appendChild(modal_footer_div)
-        modal_dialog_div.appendChild(modal_content_div)
-        modal_div.appendChild(modal_dialog_div)
-        document.body.appendChild(modal_div)
-        return {modal: modal_div, btn_ok: btn_ok, body_div: modal_body_div}
-    }
 
-    _recalc_z_index() {
-        document.addEventListener('shown.bs.modal', function (e) {
-            let el = e.target
-            let all_modal = document.querySelectorAll('.modal')
-            let zIndex = 1040
-            all_modal.forEach(function (el) {
-                if (getComputedStyle(el).display !== 'none')
-                    zIndex += 10
-            })
-            el.style.zIndex = zIndex.toString()
-            setTimeout(function () {
-                //$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
-                let modal_backdrop = document.querySelectorAll('.modal-backdrop')
-                modal_backdrop.forEach(function (el) {
-                    if (!el.classList.contains('modal-stack')) {
-                        el.style.zIndex = (zIndex - 1).toString()
-                        el.classList.add('modal-stack')
-                    }
-                })
-            }, 0);
-        })
+
+        let close_btn = `<button type="button" class="btn-close" data-ret="" aria-label="Close"></button>`
+        if (!this._options.close) {
+            close_btn = ''
+        }
+
+        return `<div class="${cls.join(' ')}">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"></h5>${close_btn}
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer"></div>
+    </div>
+  </div>`
     }
 
     _serialize_form(frm) {
@@ -594,7 +531,129 @@ class BootstrapDialogs {
         return ret_dict
     }
 
+    _recalculate_z_index() {
+        document.addEventListener('shown.bs.modal', function (e) {
+            let el = e.target
+            let all_modal = document.querySelectorAll('.modal')
+            let zIndex = 1040
+            all_modal.forEach(function (el) {
+                if (getComputedStyle(el).display !== 'none')
+                    zIndex += 10
+            })
+            el.style.zIndex = zIndex.toString()
+            setTimeout(function () {
+                //$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+                let modal_backdrop = document.querySelectorAll('.modal-backdrop')
+                modal_backdrop.forEach(function (el) {
+                    if (!el.classList.contains('modal-stack')) {
+                        el.style.zIndex = (zIndex - 1).toString()
+                        el.classList.add('modal-stack')
+                    }
+                })
+            }, 0);
+        })
+    }
 
+    custom(header, body, buttons = []) {
+        const _this = this
+        this._modal_header.innerHTML = header
+        this._modal_body.innerHTML = body
+        for (let button of buttons) {
+            let btn_el = document.createElement('button')
+            btn_el.className = 'btn ' + button[1]
+            btn_el.textContent = button[0]
+            btn_el.dataset.ret = button[2]
+            this._modal_footer.appendChild(btn_el)
+        }
+        this._modal_bs = new bootstrap.Modal(this._modal_div, _this._bs_options)
+        this._modal_bs.show()
+        return new Promise((resolve, reject) => {
+            for (let button of _this._modal_div.querySelectorAll('button[data-ret]')) {
+                button.addEventListener("click", function (e) {
+                    _this.close()
+                    if (e.target.dataset.ret === '') {
+                        e.target.dataset.ret = undefined
+                    }
+                    resolve(e.target.dataset.ret)
+                })
+            }
+            _this._modal_div.addEventListener('hidden.bs.modal', function () {
+                resolve(undefined)
+                _this.close()
+            })
+        })
+    }
+
+    async ok_cancel(header, body) {
+        return await this.custom(header, body, [[this._lng.cancel(), 'btn-secondary', 'cancel'], [this._lng.ok(), 'btn-primary', 'ok']])
+    }
+
+    async yes_no(header, body) {
+        return await this.custom(header, body, [[this._lng.no(), 'btn-secondary', 'no'], [this._lng.yes, 'btn-primary', 'yes']])
+    }
+
+    async ok(header, body) {
+        return await this.custom(header, body, [[this._lng.ok(), 'btn-primary', 'ok']])
+    }
+
+    form(header, ok_btn_text, form) {
+        const _this = this
+        this._modal_header.innerHTML = header
+        this._modal_body.innerHTML = form
+        this._modal_bs = new bootstrap.Modal(this._modal_div, this._bs_options)
+        this._form_el = this._modal_body.querySelector('form')
+        //
+        let submit_btn = document.createElement('button')
+        submit_btn.hidden = true
+        submit_btn.type = 'submit'
+        this._form_el.appendChild(submit_btn)
+        //
+        let ok_btn = document.createElement('button')
+        ok_btn.className = 'btn btn-primary'
+        ok_btn.textContent = ok_btn_text
+        ok_btn.onclick = function () {
+            submit_btn.click()
+        }
+        this._modal_footer.appendChild(ok_btn)
+        //
+        this._modal_bs.show()
+
+    }
+
+    async onsubmit(loop = false) {
+        const _this = this
+        return new Promise((resolve, reject) => {
+            _this._form_el.onsubmit = function (e) {
+                e.preventDefault()
+                resolve(_this._serialize_form(_this._form_el))
+                if (!loop) {
+                    _this.close()
+                }
+            }
+
+            _this._modal_close.onclick = function () {
+                resolve(undefined)
+                _this.close()
+            }
+
+            _this._modal_div.addEventListener('hidden.bs.modal', function () {
+                resolve(undefined)
+                _this.close()
+            })
+        })
+    }
+
+    close() {
+        try {
+            this._modal_bs.hide()
+            this._modal_div.remove()
+        } catch {
+        }
+    }
+
+    set append_body(el) {
+        this._modal_body.appendChild(el)
+    }
 }
 
 // need lodash.js
@@ -815,6 +874,7 @@ class CtxMenu {
     }
 }
 
+
 class BootstrapToast {
     static _fw
     static _toast_id_cnt = 0
@@ -893,6 +953,7 @@ class BootstrapToast {
 
 }
 
+
 class TabulatorLocale {
     static langs = {
         "ru-ru": {
@@ -929,6 +990,7 @@ class TabulatorLocale {
         }
     }
 }
+
 
 class PostJsonRpc {
     constructor(url, cookies = true) {

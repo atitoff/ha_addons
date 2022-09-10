@@ -46,6 +46,7 @@
         let ret = await rpc.send("findNewLampDali", 33)
         spinner.classList.add('d-none')
         fw2fn.disable_elements(false)
+        await new BsDialogs().ok('DALI', 'Новый светильник не найден')
     }
 </script>
 </body>
